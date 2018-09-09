@@ -1,0 +1,10 @@
+---
+binary_location: /web/soft/binary
+tomcat_location: /web/soft/tomcat
+java_location: /web/soft/java
+run_id: tomcat
+run_group: tomcat
+oprw_id: vagrant
+oprw_group: vagrant
+remote_user: vagrant
+

@@ -1,0 +1,67 @@
+---
+- name: Download jre
+  get_url:
+    url: http://javadl.oracle.com/webapps/download/AutoDL?BundleId=233162_512cd62ec5174c3487ac17c61aaa89e8
+    dest: "{{binary_location}}/jre-8u171-linux-x64.tar.gz"
+
+- name: Extract jre tar file
+  unarchive:
+    remote_src: yes
+    src: "{{binary_location}}/jre-8u171-linux-x64.tar.gz"
+    dest: "{{java_location}}"
+    force: yes
+    
+- name: Create latest symbolic link
+  file:
+    src: "{{java_location}}/jre1.8.0_171"
+    path: "{{java_location}}/latest"
+    state: link
+
+- name: Set Java home
+  set_fact:
+    java_home: "{{java_location}}/latest"
+
+- name: print java_home
+  debug:
+    var: java_home
+
+- name: set operator id bash profile
+  lineinfile:
+    create: yes
+    line: "export JAVA_HOME={{java_home}}"
+    path: "{{item}}"
+  with_items:
+    - "/home/{{oprw_id}}/.bash_profile"
+    - "/home/{{oprw_id}}/.bashrc"
+
+- name: create operator's bin folder
+  file:
+    path: "/home/{{oprw_id}}/bin"
+    state: directory
+
+- name: Set link on the operator user path
+  file:
+    src: "{{java_home}}/bin/java"
+    path: "/home/{{oprw_id}}/bin/java"
+    state: link
+
+- name: set run id bash profile
+  lineinfile:
+    create: yes
+    line: "export JAVA_HOME={{java_home}}"
+    path: "{{item}}"
+    owner: "{{run_id}}"
+    group: "{{run_group}}"
+  with_items:
+    - "/home/{{run_id}}/.bash_profile"
+    - "/home/{{run_id}}/.bashrc"
+  become: yes
+
+- name: Change the java ownership to runid
+  file:
+    path: "{{java_location}}"
+    owner: "{{run_id}}"
+    group: "{{run_group}}"
+    mode: u=rX,g=rX,o=rX
+    recurse: yes
+  become: yes

@@ -1,0 +1,25 @@
+---
+- name: Install Tomcat
+  hosts: cb_local
+  remote_user: "{{remote_user}}"
+
+  pre_tasks:        
+    - name: Stop Tomcat service if running
+      service:
+        name: tomcat8
+        state: stopped
+      become: yes
+      ignore_errors: yes
+  
+  roles:
+    - prepare
+    - install_java
+    - install_tomcat
+
+  post_tasks:
+    - name: Start Tomcat service
+      service:
+        name: tomcat8
+        state: started
+      become: yes
+

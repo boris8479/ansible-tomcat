@@ -1,0 +1,57 @@
+---
+- name: Download Tomcat
+  get_url:
+    url: "http://mirror.olnevhost.net/pub/apache/tomcat/tomcat-8/v8.5.33/bin/apache-tomcat-8.5.33.tar.gz"
+    dest: "{{binary_location}}/apache-tomcat-8.5.33.tar.gz"
+
+- name: Extract tomcat tar file
+  unarchive:
+    remote_src: yes
+    src: "{{binary_location}}/apache-tomcat-8.5.33.tar.gz"
+    dest: "{{tomcat_location}}"
+    force: yes
+    
+- name: Create latest symbolic link
+  file:
+    src: "{{tomcat_location}}/apache-tomcat-8.5.33"
+    path: "{{tomcat_location}}/latest"
+    state: link
+
+- name: Set Tomcat home
+  set_fact:
+    tomcat8_home: "{{tomcat_location}}/latest"
+    tomcat_service_name: tomcat8
+    tomcat_webapps: "{{tomcat_location}}/latest/webapps"
+
+- name: print tomcat_home
+  debug:
+    var: tomcat8_home
+
+- name: Delete default webapps
+  file:
+    path: "{{item}}"
+    state: absent
+  with_items:
+    - "{{tomcat_webapps}}/docs"
+    - "{{tomcat_webapps}}/examples"
+    - "{{tomcat_webapps}}/host-manager"
+    - "{{tomcat_webapps}}/manager"
+
+- name: Replace ROOT index page
+  copy:
+    src: "ROOT/index.jsp"
+    dest: "{{tomcat_webapps}}/ROOT"
+
+# Install as a service
+- name: Install Tomcat Service
+  template: src=tomcat.service.j2 dest=/etc/systemd/system/tomcat8.service
+  become: yes
+
+- name: Change the tomcat ownership to runid
+  file:
+    path: "{{tomcat_location}}"
+    owner: "{{run_id}}"
+    group: "{{run_group}}"
+    mode: u=rwX,g=rX,o=rX
+    recurse: yes
+  become: yes

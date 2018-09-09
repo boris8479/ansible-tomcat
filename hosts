@@ -1,0 +1,11 @@
+[pf_local]
+pfederate
+
+[pa_local]
+paccess
+
+[cb_local]
+coreblox
+
+[web_local]
+web

@@ -1,0 +1,40 @@
+---
+# Create the tomcat credentials
+- name: Create tomcat group
+  group:
+    name: "{{run_id}}"
+    system: true
+  become: yes
+
+- name: Create tomcat user
+  user:
+    name: "{{run_id}}"
+    group: "{{run_group}}"
+    shell: /bin/false
+    system: true
+    home: "/home/{{run_id}}"
+    createhome: yes
+  become: yes
+
+# prepare the directories
+- name: delete existing installations if present
+  file:
+    path: "{{item}}"
+    state: absent
+  become: yes
+  with_items:
+    - "{{tomcat_location}}"
+    - "{{java_location}}"
+  
+- name: create software directories
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: "{{remote_user}}"
+  with_items:
+    - "{{binary_location}}"
+    - "{{tomcat_location}}"
+    - "{{java_location}}"
+  become: yes
+
+
